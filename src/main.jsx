@@ -9,6 +9,26 @@ import "./branding.css";
 const rupees = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 const palette=["#F2A365","#8AA7E8","#A88FDD","#54B99B","#E2C96F","#D7838A"];
 const quickEntries = [{who:"Ayush",what:"Samose",amount:50,time:"10:05",status:"confirmed"},{who:"Deepesh",what:"Petrol",amount:210,time:"13:18",status:"confirmed"},{who:"Vishal",what:"Food",amount:600,time:"15:42",status:"confirmed"},{who:"Anuj",what:"Stay",amount:200,time:"18:30",status:"confirmed"}];
+const demoFixtures = {
+ "Quick split": { date:"July 16", people:["Ayush","Anuj","Deepesh","Vishal"], entries:quickEntries },
+ "Flatmates": { date:"July 14", people:["Riya","Kabir","Meera"], entries:[
+  {who:"Riya",what:"Rent",amount:18000,time:"09:10",status:"confirmed"},
+  {who:"Kabir",what:"Groceries",amount:2400,time:"18:35",status:"confirmed"},
+  {who:"Meera",what:"Wi-Fi",amount:1200,time:"21:05",status:"confirmed"}
+ ]},
+ "Goa trip": { date:"July 11", people:["Aditi","Rahul","Neha","Arjun"], entries:[
+  {who:"Aditi",what:"Airport cab",amount:1600,time:"08:45",status:"confirmed"},
+  {who:"Rahul",what:"Villa stay",amount:8400,time:"12:20",status:"confirmed"},
+  {who:"Neha",what:"Beach snacks",amount:650,time:"16:40",status:"confirmed"},
+  {who:"Arjun",what:"Scooter rental",amount:1200,time:"19:15",status:"confirmed"}
+ ]},
+ "Hostel floor": { date:"July 15", people:["Karan","Nisha","Sameer","Priya"], entries:[
+  {who:"Karan",what:"Wi-Fi bill",amount:1200,time:"10:10",status:"confirmed"},
+  {who:"Nisha",what:"Water cans",amount:320,time:"14:35",status:"confirmed"},
+  {who:"Sameer",what:"Laundry",amount:540,time:"17:05",status:"confirmed"},
+  {who:"Priya",what:"Electricity bill",amount:1800,time:"20:30",status:"confirmed"}
+ ]}
+};
 const demos = [{name:"Quick split",copy:"4 friends · ₹1,060",active:true},{name:"Flatmates",copy:"Rent & groceries"},{name:"Goa trip",copy:"Receipts & corrections"},{name:"Hostel floor",copy:"Hinglish & bills"}];
 
 function settle(totals){const creditors=Object.entries(totals).filter(([,n])=>n>.01).map(([name,value])=>({name,value}));const debtors=Object.entries(totals).filter(([,n])=>n<-.01).map(([name,value])=>({name,value:-value}));const payments=[];while(creditors.length&&debtors.length){creditors.sort((a,b)=>b.value-a.value);debtors.sort((a,b)=>b.value-a.value);const amount=Math.min(creditors[0].value,debtors[0].value);payments.push([debtors[0].name,creditors[0].name,amount]);creditors[0].value-=amount;debtors[0].value-=amount;if(creditors[0].value<.01)creditors.shift();if(debtors[0].value<.01)debtors.shift()}return payments}
@@ -19,9 +39,10 @@ function extractLedger(raw,result){const messages=parseChat(raw);const names=[..
 
 function App(){
  const [open,setOpen]=useState(false); const [tab,setTab]=useState("overview"); const [selected,setSelected]=useState("Quick split"); const [ledger,setLedger]=useState(quickLedger); const [loading,setLoading]=useState(false); const [error,setError]=useState(""); const [notice,setNotice]=useState("");
+ const selectedFixture=demoFixtures[selected];
  const total=ledger.total;
  const pending=ledger.entries.filter(entry=>entry.status==="pending");
- const selectDemo=(name)=>{setSelected(name);setLedger(quickLedger);setOpen(true);setTab("overview");setError("")};
+ const selectDemo=(name)=>{const fixture=demoFixtures[name];setSelected(name);setLedger(buildLedger(fixture.entries,fixture.people));setOpen(true);setTab("overview");setError("");setNotice("")};
  const handleChat=async event=>{const file=event.target.files?.[0];if(!file)return;setLoading(true);setError("");try{const raw=await file.text();const response=await fetch("/api/extract",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat:raw})});const result=await response.json();if(!response.ok)throw new Error(result.error||"We couldn't read that chat.");const next=extractLedger(raw,result);if(!next.entries.length)throw new Error("No supported shared expenses found.");setLedger(next);setSelected(file.name.replace(/\.[^.]+$/,""));setOpen(true);setTab("overview")}catch(problem){setError(problem.message)}finally{setLoading(false)}};
  const readDataUrl=file=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file)});
  const handleReceipt=async event=>{const file=event.target.files?.[0];if(!file)return;setLoading(true);setError("");try{if(file.size>5*1024*1024)throw new Error("Choose a receipt image under 5 MB.");const imageUrl=await readDataUrl(file);const response=await fetch("/api/receipt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({imageUrl})});const receipt=await response.json();if(!response.ok)throw new Error(receipt.error||"Unable to scan this receipt.");if(!receipt.is_receipt)throw new Error("That image does not look like a receipt.");setNotice(receipt.amount ? `Receipt verified: ${rupees.format(receipt.amount)}${receipt.merchant ? ` · ${receipt.merchant}` : ""}` : "Receipt found — please check the total.");}catch(problem){setError(problem.message)}finally{setLoading(false)}};
@@ -53,7 +74,7 @@ function App(){
    <div className="examples"><span>Explore examples</span>{demos.slice(1).map(d=><button key={d.name} onClick={()=>selectDemo(d.name)}>{d.name}<ChevronRight size={14}/></button>)}</div>
   </main> :
   <main className="ledger">
-   <div className="ledger-top"><div><button className="back" onClick={()=>setOpen(false)}>← All demos</button><div className="kicker">GROUP LEDGER</div><h2>{selected}<span> · July 16</span></h2></div><button className="share" onClick={shareSummary}><Send size={15}/>Share to WhatsApp</button></div>
+   <div className="ledger-top"><div><button className="back" onClick={()=>setOpen(false)}>← All demos</button><div className="kicker">GROUP LEDGER</div><h2>{selected}<span> · {selectedFixture?.date||"Today"}</span></h2></div><button className="share" onClick={shareSummary}><Send size={15}/>Share to WhatsApp</button></div>
    <nav>{["overview","activity"].map(item=><button key={item} className={tab===item?"active":""} onClick={()=>setTab(item)}>{item==="overview"?"Overview":"Activity"}</button>)}<div className="proof"><ReceiptText size={14}/><label>Add receipt<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleReceipt}/></label><span>or</span><label>voice note<input hidden type="file" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm" onChange={handleVoice}/></label></div></nav>
    {notice&&<div className="notice"><Check size={15}/>{notice}<button onClick={()=>setNotice("")}>×</button></div>}{error&&<div className="error">{error}</div>}
    <AnimatePresence mode="wait">{tab==="overview"?<motion.section key="overview" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}} className="overview">
