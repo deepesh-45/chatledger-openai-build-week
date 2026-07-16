@@ -26,6 +26,15 @@ node server.mjs
 
 Open `http://localhost:8000`.
 
+## Deploy on Render
+
+The repository includes [`render.yaml`](render.yaml) for a Render web service.
+
+1. In Render, choose **New +** → **Blueprint** and select this GitHub repository.
+2. Keep the generated build and start commands unchanged.
+3. Add `OPENAI_API_KEY` as a private environment variable in Render. Never add it to the repository.
+4. Deploy. Render will provide a public URL for the demo.
+
 For interface-only development:
 
 ```bash
