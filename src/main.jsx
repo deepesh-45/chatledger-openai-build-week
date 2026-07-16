@@ -8,7 +8,7 @@ import "./branding.css";
 import "./source-chat.css";
 import "./hero-art.css";
 import "./landing-layout.css";
-import chatLedgerHero from "./assets/chatledger-chat-to-ledger.jpeg";
+import "./glass-polish.css";
 
 const rupees = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 const palette=["#F2A365","#8AA7E8","#A88FDD","#54B99B","#E2C96F","#D7838A"];
@@ -64,7 +64,6 @@ function App(){
      <h1>Who owes whom?<br/><i>Your chat already knows.</i></h1>
      <p>ChatLedger turns chaotic group conversations into a clear, fair settle-up—without manual entries or silent guesses.</p>
     </motion.div>
-    <motion.figure aria-hidden="true" initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{delay:.08}} className="hero-art" style={{"--hero-art":`url(${chatLedgerHero})`}}/>
    </section>
    <section className="launch-grid">
     <motion.article whileHover={{y:-4}} className="launch-card featured">
