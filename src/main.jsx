@@ -7,6 +7,7 @@ import "./feedback.css";
 import "./branding.css";
 import "./source-chat.css";
 import "./hero-art.css";
+import "./landing-layout.css";
 import chatLedgerHero from "./assets/chatledger-chat-to-ledger.jpeg";
 
 const rupees = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
@@ -54,7 +55,7 @@ function App(){
  const summaryText=`ChatLedger · ${selected}\nTotal shared spend: ${rupees.format(ledger.total)}\n\n${ledger.payments.map(([from,to,amount])=>`• ${from} pays ${to} ${rupees.format(amount)}`).join("\n")}\n\nEveryone is square after these payments.`;
  const shareSummary=async()=>{try{const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="100%" height="100%" fill="#193630"/><circle cx="1090" cy="88" r="160" fill="#d9fb70"/><text x="72" y="100" fill="#d9fb70" font-family="Arial" font-size="28" font-weight="700">CHATLEDGER</text><text x="72" y="175" fill="white" font-family="Georgia" font-size="64">Settle-up summary</text><text x="72" y="223" fill="#b6c9c3" font-family="Arial" font-size="24">${selected}</text><text x="72" y="326" fill="white" font-family="Georgia" font-size="70">${rupees.format(ledger.total)}</text>${ledger.payments.map(([from,to,amount],index)=>`<text x="72" y="${440+index*46}" fill="white" font-family="Arial" font-size="25">${from}  →  ${to}   ·   ${rupees.format(amount)}</text>`).join("")}</svg>`;const file=new File([svg],"chatledger-summary.svg",{type:"image/svg+xml"});if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({title:"ChatLedger settle-up",text:summaryText,files:[file]});return}window.open(`https://wa.me/?text=${encodeURIComponent(summaryText)}`,"_blank","noopener,noreferrer");setNotice("WhatsApp opened with your settle-up summary.");}catch(problem){if(problem.name!=="AbortError")setError("Unable to open the share sheet.");}};
  const copyPayment=(from,to,amount)=>{const reminder=`UPI payment reminder: ${from}, please pay ${to} ${rupees.format(amount)} for ${selected}.`;navigator.clipboard?.writeText(reminder).catch(()=>{});setNotice("Payment reminder copied — paste it in WhatsApp or your UPI app.");};
- return <div className="app-shell">
+ return <div className={`app-shell ${open?"ledger-shell":"landing-shell"}`}>
   <header><a className="logo" href="/"><span className="logo-mark"><i/><i/><i/></span>chatledger</a><div className="secure"><span className="demo-dot"/>Demo mode · private by default</div></header>
   {!open ? <main className="landing">
    <section className="hero-layout">
