@@ -64,10 +64,7 @@ function App(){
      <h1>Who owes whom?<br/><i>Your chat already knows.</i></h1>
      <p>ChatLedger turns chaotic group conversations into a clear, fair settle-up—without manual entries or silent guesses.</p>
     </motion.div>
-    <motion.figure initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{delay:.08}} className="hero-art">
-     <img src={chatLedgerHero} alt="Group-chat expenses flowing into a verified rupee settlement"/>
-     <figcaption>From scattered messages to one fair answer.</figcaption>
-    </motion.figure>
+    <motion.figure aria-hidden="true" initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{delay:.08}} className="hero-art" style={{"--hero-art":`url(${chatLedgerHero})`}}/>
    </section>
    <section className="launch-grid">
     <motion.article whileHover={{y:-4}} className="launch-card featured">
