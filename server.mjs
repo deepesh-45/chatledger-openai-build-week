@@ -158,7 +158,7 @@ http.createServer(async (request, response) => {
   if (!filePath.startsWith(path.resolve(root, "dist") + path.sep) && filePath !== path.resolve(root, "dist", "index.html")) return send(response, 404, { error: "Not found." });
   try {
     const resolved = await stat(filePath).then(info => info.isFile() ? filePath : path.join(root, "dist", "index.html"));
-    const type = resolved.endsWith(".css") ? "text/css" : resolved.endsWith(".js") ? "text/javascript" : resolved.endsWith(".svg") ? "image/svg+xml" : "text/html";
-    send(response, 200, await readFile(resolved, "utf8"), type);
+    const type = resolved.endsWith(".css") ? "text/css" : resolved.endsWith(".js") ? "text/javascript" : resolved.endsWith(".svg") ? "image/svg+xml" : resolved.endsWith(".jpeg") || resolved.endsWith(".jpg") ? "image/jpeg" : resolved.endsWith(".png") ? "image/png" : resolved.endsWith(".webp") ? "image/webp" : "text/html";
+    send(response, 200, await readFile(resolved), type);
   } catch { send(response, 404, { error: "Build the app first with npm run build." }); }
 }).listen(port, () => console.log(`ChatLedger running at http://localhost:${port}`));
