@@ -1,0 +1,5 @@
+.hero-layout{display:grid;grid-template-columns:minmax(0,1.16fr) minmax(290px,.84fr);gap:42px;align-items:center}
+.hero-art{margin:0;position:relative}
+.hero-art img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #d7ddd5;border-radius:24px;box-shadow:0 22px 50px #1b2d2318}
+.hero-art figcaption{position:absolute;left:18px;bottom:18px;margin:0;padding:8px 10px;border-radius:8px;background:#193630e8;color:#d9fb70;font:11px "DM Mono"}
+@media(max-width:720px){.hero-layout{grid-template-columns:1fr;gap:24px}.hero-art{max-width:440px}.hero-art img{aspect-ratio:16/10}.hero-art figcaption{bottom:14px;left:14px}}

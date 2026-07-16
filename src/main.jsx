@@ -6,6 +6,8 @@ import "./styles.css";
 import "./feedback.css";
 import "./branding.css";
 import "./source-chat.css";
+import "./hero-art.css";
+import chatLedgerHero from "./assets/chatledger-chat-to-ledger.jpeg";
 
 const rupees = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 const palette=["#F2A365","#8AA7E8","#A88FDD","#54B99B","#E2C96F","#D7838A"];
@@ -55,11 +57,17 @@ function App(){
  return <div className="app-shell">
   <header><a className="logo" href="/"><span className="logo-mark"><i/><i/><i/></span>chatledger</a><div className="secure"><span className="demo-dot"/>Demo mode · private by default</div></header>
   {!open ? <main className="landing">
-   <motion.section initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} className="hero">
-    <div className="kicker"><Sparkles size={14}/> THE SHARED-MONEY RESET</div>
-    <h1>Who owes whom?<br/><i>Your chat already knows.</i></h1>
-    <p>ChatLedger turns chaotic group conversations into a clear, fair settle-up—without manual entries or silent guesses.</p>
-   </motion.section>
+   <section className="hero-layout">
+    <motion.div initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} className="hero">
+     <div className="kicker"><Sparkles size={14}/> THE SHARED-MONEY RESET</div>
+     <h1>Who owes whom?<br/><i>Your chat already knows.</i></h1>
+     <p>ChatLedger turns chaotic group conversations into a clear, fair settle-up—without manual entries or silent guesses.</p>
+    </motion.div>
+    <motion.figure initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{delay:.08}} className="hero-art">
+     <img src={chatLedgerHero} alt="Group-chat expenses flowing into a verified rupee settlement"/>
+     <figcaption>From scattered messages to one fair answer.</figcaption>
+    </motion.figure>
+   </section>
    <section className="launch-grid">
     <motion.article whileHover={{y:-4}} className="launch-card featured">
       <div className="card-icon glow"><WalletCards/></div><span className="overline">See it in 10 seconds</span><h2>Try the weekend split</h2><p>Four friends. Four expenses. One clean answer.</p>
