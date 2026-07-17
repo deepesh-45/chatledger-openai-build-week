@@ -5,7 +5,7 @@
 ChatLedger turns shared-living group chats into a clear, auditable settle-up. GPT-5.6 extracts the fuzzy human context; deterministic code handles the money.
 
 > [!IMPORTANT]
-> **API status for this public hackathon demo:** an OpenAI API key with billing is not currently configured in the deployed demo, so live GPT-5.6 extraction, receipt reading, and voice-note transcription are not connected there. The complete no-key product walkthrough is available through the included demo chats and examples. Add your own billed `OPENAI_API_KEY` locally or in Render to enable the live AI routes.
+> **API status for this public demo:** an OpenAI API key with billing is not currently configured in the deployed demo, so live GPT-5.6 extraction, receipt reading, and voice-note transcription are not connected there. The complete no-key product walkthrough is available through the included demo chats and examples. Add your own billed `OPENAI_API_KEY` locally or in Render to enable the live AI routes.
 
 ## What it does
 
@@ -15,7 +15,7 @@ ChatLedger turns shared-living group chats into a clear, auditable settle-up. GP
 - Holds vague amounts or splits for human confirmation
 - Reads receipt images and transcribes voice notes
 
-## Devpost judge instructions
+## Demo and testing instructions
 
 ### Test the complete demo without an API key
 
@@ -84,7 +84,7 @@ npm run dev
 
 ## Privacy
 
-The browser never receives the OpenAI API key. The local server reads it from `.env`. Chat text and media are sent to OpenAI only after a user explicitly uploads them; this hackathon prototype does not persist them.
+The browser never receives the OpenAI API key. The local server reads it from `.env`. Chat text and media are sent to OpenAI only after a user explicitly uploads them; this demo version does not persist them.
 
 ## Built with Codex and GPT-5.6
 
