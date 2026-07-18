@@ -15,7 +15,7 @@ ChatLedger turns shared-living group chats into a clear, auditable settle-up. GP
 - Holds vague amounts or splits for human confirmation
 - Reads receipt images and transcribes voice notes
 
-## Devpost judge instructions
+## Judge instructions
 
 ### Test the complete demo without an API key
 
