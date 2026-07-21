@@ -21,6 +21,38 @@ function outputText(payload) {
   return (payload.output || []).flatMap(item => item.content || []).find(item => item.type === "output_text")?.text || "";
 }
 
+function dataUrlParts(dataUrl) {
+  const [, mime, encoded] = dataUrl.match(/^data:([^;]+);base64,(.+)$/) || [];
+  return { mime, encoded };
+}
+
+async function geminiJson({ prompt, responseSchema, imageUrl }) {
+  if (!process.env.GEMINI_API_KEY) throw new Error("Neither OpenAI nor Gemini is configured on the server.");
+  const parts = [{ text: prompt }];
+  if (imageUrl) {
+    const { mime, encoded } = dataUrlParts(imageUrl);
+    if (!mime || !encoded) throw new Error("Unsupported image format.");
+    parts.push({ inlineData: { mimeType: mime, data: encoded } });
+  }
+  const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL || "gemini-2.5-flash")}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts }],
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseJsonSchema: responseSchema
+      }
+    })
+  });
+  const payload = await apiResponse.json();
+  if (!apiResponse.ok) throw new Error(payload.error?.message || "The Gemini request failed.");
+  const text = payload.candidates?.[0]?.content?.parts?.find(part => typeof part.text === "string")?.text;
+  if (!text) throw new Error("Gemini returned no structured result.");
+  return JSON.parse(text);
+}
+
 const schema = {
   type: "object",
   additionalProperties: false,
@@ -58,20 +90,21 @@ const receiptSchema = {
   }
 };
 
-async function extract(chat) {
-  if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured on the server.");
-  const prompt = `Read this WhatsApp group-chat export and identify only shared expenses. The chat may mix English, Hindi, and Hinglish (for example: "maine wifi ka 1200 diya" means the sender paid 1200 for Wi-Fi). Return one entry for each expense.
+const extractionPrompt = chat => `Read this WhatsApp group-chat export and identify only shared expenses. The chat may mix English, Hindi, and Hinglish (for example: "maine wifi ka 1200 diya" means the sender paid 1200 for Wi-Fi). Return one entry for each expense.
 
 An amount is confirmed only when the chat explicitly states it or a clearly associated receipt corrects it. Never invent or round an amount. If an expense is mentioned but the amount is vague, set amount to null and confidence to needs_confirmation. Treat "nvm", "ignore that", "wrong amount", and "cancel" as corrections: do not return the superseded amount. Treat "paid me back", "settled", and "bhej diya" as reimbursements, not new expenses.
 
 Do not calculate balances or transfers. Use the sender as payer only when the message supports that they paid. source_message_index is zero-based within the chat messages as supplied.\n\nCHAT:\n${chat}`;
+
+async function extractWithOpenAI(chat) {
+  if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured on the server.");
   const apiResponse = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     body: JSON.stringify({
       model: "gpt-5.6",
       reasoning: { effort: "low" },
-      input: prompt,
+      input: extractionPrompt(chat),
       text: { format: { type: "json_schema", name: "chatledger_entries", strict: true, schema } }
     })
   });
@@ -80,7 +113,19 @@ Do not calculate balances or transfers. Use the sender as payer only when the me
   return JSON.parse(outputText(payload));
 }
 
-async function readReceipt(imageUrl) {
+async function extract(chat) {
+  if (process.env.OPENAI_API_KEY) {
+    try { return await extractWithOpenAI(chat); }
+    catch (error) {
+      if (!process.env.GEMINI_API_KEY) throw error;
+    }
+  }
+  return geminiJson({ prompt: extractionPrompt(chat), responseSchema: schema });
+}
+
+const receiptPrompt = "Read this image only if it is a receipt. Extract the merchant, final total, and purchased items. Never guess an unreadable amount.";
+
+async function readReceiptWithOpenAI(imageUrl) {
   if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured on the server.");
   const apiResponse = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -89,7 +134,7 @@ async function readReceipt(imageUrl) {
       model: "gpt-5.6",
       reasoning: { effort: "low" },
       input: [{ role: "user", content: [
-        { type: "input_text", text: "Read this image only if it is a receipt. Extract the merchant, final total, and purchased items. Never guess an unreadable amount." },
+        { type: "input_text", text: receiptPrompt },
         { type: "input_image", image_url: imageUrl }
       ] }],
       text: { format: { type: "json_schema", name: "chatledger_receipt", strict: true, schema: receiptSchema } }
@@ -100,9 +145,19 @@ async function readReceipt(imageUrl) {
   return JSON.parse(outputText(payload));
 }
 
+async function readReceipt(imageUrl) {
+  if (process.env.OPENAI_API_KEY) {
+    try { return await readReceiptWithOpenAI(imageUrl); }
+    catch (error) {
+      if (!process.env.GEMINI_API_KEY) throw error;
+    }
+  }
+  return geminiJson({ prompt: receiptPrompt, responseSchema: receiptSchema, imageUrl });
+}
+
 async function transcribe(audioUrl) {
   if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured on the server.");
-  const [, mime, encoded] = audioUrl.match(/^data:([^;]+);base64,(.+)$/) || [];
+  const { mime, encoded } = dataUrlParts(audioUrl);
   if (!mime || !encoded) throw new Error("Unsupported voice-note format.");
   const extension = ({ "audio/mpeg": "mp3", "audio/mp4": "m4a", "audio/ogg": "ogg", "audio/wav": "wav", "audio/webm": "webm" })[mime] || "audio";
   const form = new FormData();

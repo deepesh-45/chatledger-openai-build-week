@@ -5,7 +5,7 @@
 ChatLedger turns shared-living group chats into a clear, auditable settle-up. GPT-5.6 extracts the fuzzy human context; deterministic code handles the money.
 
 > [!IMPORTANT]
-> **API status for this public hackathon demo:** an OpenAI API key with billing is not currently configured in the deployed demo, so live GPT-5.6 extraction, receipt reading, and voice-note transcription are not connected there. The complete no-key product walkthrough is available through the included demo chats and examples. Add your own billed `OPENAI_API_KEY` locally or in Render to enable the live AI routes.
+> **API status for this public hackathon demo:** an OpenAI API key with billing is not currently configured in the deployed demo. ChatLedger supports a server-side Gemini fallback for chat extraction and receipt reading when `GEMINI_API_KEY` is configured. The complete no-key product walkthrough is also available through the included demo chats and examples.
 
 ## What it does
 
@@ -27,9 +27,9 @@ ChatLedger turns shared-living group chats into a clear, auditable settle-up. GP
 
 These included demos do not require an API key and demonstrate ChatLedger's ledger, audit, confirmation, sharing, and deterministic settle-up workflows.
 
-### Enable live GPT-5.6 extraction
+### Enable live AI extraction
 
-Provide an OpenAI API key with API billing enabled. This unlocks custom WhatsApp chat upload, receipt scanning, and voice-note transcription.
+Provide either an OpenAI API key with API billing enabled or a Gemini API key. OpenAI is tried first; Gemini automatically takes over for chat extraction and receipt scanning if OpenAI is unavailable. Voice-note transcription currently uses OpenAI.
 
 ## Run locally
 
@@ -51,8 +51,8 @@ The repository includes [`render.yaml`](render.yaml) for a Render web service.
 
 1. In Render, choose **New +** → **Blueprint** and select this GitHub repository.
 2. Keep the generated build and start commands unchanged.
-3. Add `OPENAI_API_KEY` as a private environment variable in Render. Never add it to the repository.
-4. Deploy. Render will provide a public URL for the demo. Without this private environment variable, the included no-key demos still work; live upload, receipt, and voice routes will show an API configuration message.
+3. Add `OPENAI_API_KEY` and/or `GEMINI_API_KEY` as private environment variables in Render. Never add either key to the repository.
+4. Deploy. Render will provide a public URL for the demo. Without either private environment variable, the included no-key demos still work; live upload, receipt, and voice routes will show an API configuration message.
 
 For interface-only development:
 
