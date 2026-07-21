@@ -94,7 +94,7 @@ const extractionPrompt = chat => `Read this WhatsApp group-chat export and ident
 
 An amount is confirmed only when the chat explicitly states it or a clearly associated receipt corrects it. Never invent or round an amount. If an expense is mentioned but the amount is vague, set amount to null and confidence to needs_confirmation. Treat "nvm", "ignore that", "wrong amount", and "cancel" as corrections: do not return the superseded amount. Treat "paid me back", "settled", and "bhej diya" as reimbursements, not new expenses.
 
-Do not calculate balances or transfers. Use the sender as payer only when the message supports that they paid. source_message_index is zero-based within the chat messages as supplied.\n\nCHAT:\n${chat}`;
+Do not calculate balances or transfers. Use the sender as payer only when the message supports that they paid. If a sender explicitly says another named person paid (for example, "Anuj paid 100 for food"), use that named person as payer. Keep the payer name plain (without decorative emoji or status text). source_message_index is zero-based within the chat messages as supplied.\n\nCHAT:\n${chat}`;
 
 async function extractWithOpenAI(chat) {
   if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured on the server.");
